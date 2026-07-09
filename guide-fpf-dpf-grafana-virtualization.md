@@ -53,18 +53,6 @@ These examples illustrate the concept:
 
 These are examples, not the definition itself. The underlying idea is that dashboards should separate carriers, selectors, readings, and views.
 
-## Naming note
-
-If this document is meant to live in a repository, a concise and readable name is:
-
-- `guide-fpf-dpf-grafana-virtualization.md`
-
-Other valid options:
-
-- `grafana-virtualization-observability-guide.md`
-- `fpf-dpf-grafana-dashboard-principles.md`
-- `virtualization-dashboard-ontology.md`
-
 ## Short glossary
 
 - **FPF**: the framing used to separate method, evidence, work, and publication concerns.
