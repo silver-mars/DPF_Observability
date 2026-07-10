@@ -61,3 +61,35 @@ These are examples, not the definition itself. The underlying idea is that dashb
 - **Selector**: a variable or label filter used to scope a dashboard query.
 - **Reading**: a derived metric view or chart.
 - **View**: the dashboard or panel that displays readings.
+
+## Explore as an experiment surface
+
+Grafana Explore is an experimental query surface, separate from a published dashboard. Use it to inspect carriers, vary selectors, compare time windows, and test a candidate reading before it becomes a panel, recording rule, or alert expression.
+
+A query in Explore is an executable hypothesis over current or historical observations. To validate a future alert, run the exact `expr` over an interval containing both normal and suspected failure states. The returned series shows when the expression is true. Explore does not evaluate the alert lifecycle itself: `for` is evaluated only by the rule engine (Prometheus, VMAlert, or Grafana Alerting).
+
+When a panel contains multiple queries, isolate a reading before interpreting it. Temporarily hide a query with its visibility control instead of deleting it. For binary and state metrics, prefer lines or points over stacked rendering, because stacking adds simultaneous series and can create a misleading apparent value.
+
+## Query language and portability
+
+For VictoriaMetrics-backed dashboards, readings are expressed in MetricsQL. MetricsQL is compatible with PromQL and extends it, so a PromQL-compatible expression can normally be explored in Grafana and reused in VMAlert.
+
+The query language is part of a reading definition. A reading is not only a metric name: it also includes label scope, aggregation, range window, vector matching, and missing-data semantics. For example, `avg_over_time(metric[5m])` summarizes observed samples, whereas `absent_over_time(metric[5m])` asks whether the selected series has no samples in the range.
+
+## Missing data and evidence boundaries
+
+A missing series is evidence about the observation path, not automatically evidence that the observed system has failed. A gap can result from a target failure, exporter failure, scrape failure, a network partition between collector and target, service discovery or relabeling changes, or a changed label set.
+
+Dashboards and alerts should therefore distinguish three evidence layers:
+
+- **Object state**: what the observed service reports about itself.
+- **Observation-path state**: whether the monitoring system can collect that report.
+- **Service outcome**: whether a consumer can use the service through its intended endpoint.
+
+A claim about service failure needs evidence from the service-outcome layer or from independent observation paths. A missing internal metric can justify an observability alert, but it cannot by itself conclusively prove a service outage.
+
+## Alert-expression validation
+
+An alert rule has two separate parts: `expr`, which decides whether the alert condition is true at an evaluation instant, and `for`, which requires that condition to remain true continuously before the alert fires.
+
+To validate an alert in Explore, paste only its exact `expr`, select a time interval around a known event, and use a resolution no coarser than the rule evaluation interval. Then verify visually or through tabular results that the expression remains non-empty (or remains `1`, depending on the expression) for at least the configured `for` duration. Validate missing-data rules separately because an empty result and a result with value zero are not equivalent in PromQL or MetricsQL.
